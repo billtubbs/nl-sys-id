@@ -7,19 +7,39 @@
 import numpy as np
 
 
-# State-space model equations
 def f(t, x, u, params):
-    """Continuous-time dynamics
+    """Continuous-time state-space model - dynamics function
+
+        d/dt(x[t]) = f(x[t], u[t])
+
+    Arguments
+    ---------
+    x : list or array
+        State vector
+    u : list or array
+        Input vector
     """
     d, c, b = params['weir_height'], params['c'], params['weir_width']
-    assert np.all(x < 0.33 * b), "Out of bounds"
-    return c * (u - 3.33 * (b - 0.2 * x) * x ** 1.5 ) / (x + d) ** 2
+    # Note: In general x, u could be a vectors therefore indexing is used
+    h = x[0]  # head on weir
+    q = u[0]  # water addition rate
+    assert np.all(h < 0.33 * b), "Out of bounds"
+    return c * (q - 3.33 * (b - 0.2 * h) * h ** 1.5 ) / (h + d) ** 2
 
 
 def g(t, x, u, params):
-    """Measurement function
+    """State-space model - measurement function
+
+        y[t] = g(x[t], u[t])
+
+    Arguments
+    ---------
+    x : list or array
+        State vector
+    u : list or array
+        Input vector
     """
-    return x
+    return x[0:1]
 
 
 # Default system parameters
@@ -32,15 +52,15 @@ params = {
 
 
 # Define normal operating point
-u_nop, x_nop = 1, 0.28805
+u_nop, x_nop = [1], [0.28805]
 
 
 def run_tests():
     # Check function calculations
-    assert(f(0, 0, 0, params) == 0)
-    assert(f(110, 0, 0, params) == 0)
+    assert(f(0, [0], [0], params) == 0)
+    assert(f(110, [0], [0], params) == 0)
     try:
-        f(0, 0.34 * params['weir_width'], 0, params)
+        f(0, [0.34 * params['weir_width']], [0], params)
     except AssertionError:
         pass
     else:
